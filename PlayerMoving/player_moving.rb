@@ -64,6 +64,7 @@ class Player
     @vel_y = 0
     @angle = 0
     @score = 0
+    @beep = Gosu::Sample.new("#{__dir__}/sounds/beep.wav")
     @velocity = Configuration::PLAYER_VELOCITY
   end
 
@@ -103,7 +104,13 @@ class Player
   attr_reader :score
 
   def collect_stars(stars)
-    stars.reject! { |star| Gosu.distance(@x, @y, star.x, star.y) < 25 }
+    stars.each do |star|
+      if Gosu.distance(@x, @y, star.x, star.y) < 35
+        @score += 10
+        @beep.play
+        stars.delete(star)
+      end
+    end
   end
 end
 
