@@ -11,18 +11,66 @@ module Configuration
   Z_ENEMY = 1
   Z_PLAYER = 2
   Z_BULLET = 3
+  Z_EXPLOSION = 3
   Z_UI = 4
 end
 
+class LaserFlash
+  @all = []
+
+  class << self
+    attr_accessor :all
+  end
+
+  def initialize(x, y)
+    @animation = [Gosu::Image.new("#{__dir__}/images/laserBlue10.png"), Gosu::Image.new("#{__dir__}/images/laserBlue11.png")]
+    @x = x
+    @y = y
+    @animation_frame = -1
+    next_frame
+
+    LaserFlash.all.push(self)
+  end
+
+  def update
+    next_frame if Gosu.milliseconds >= @animation_next_frame_at
+  end
+
+  def next_frame
+    @animation_frame += 1
+    @animation_next_frame_at = Gosu.milliseconds + 80
+
+    if @animation_frame >= @animation.length
+      die
+    else
+      @image = @animation[@animation_frame]
+    end
+  end
+
+  def die
+    LaserFlash.all.delete(self)
+  end
+
+  def draw
+    @image.draw_rot(@x, @y, Configuration::Z_EXPLOSION)
+  end
+end
+
 class Explosion
-  def initialize(x, y, explosions)
+  @all = []
+
+  class << self
+    attr_accessor :all
+  end
+
+  def initialize(x, y)
     @animation = [Gosu::Image.new("#{__dir__}/images/laserBlue08.png"), Gosu::Image.new("#{__dir__}/images/laserBlue09.png")]
     @x = x
     @y = y
-    @explosions = explosions
-    @velocity = Configuration::ENEMY_VELOCITY
     @animation_frame = -1
     next_frame
+
+    Explosion.all.push(self)
   end
 
   def update
@@ -41,16 +89,22 @@ class Explosion
   end
 
   def die
-    @explosions.delete(self)
+    Explosion.all.delete(self)
   end
 
   def draw
-    @image.draw_rot(@x, @y, Configuration::Z_ENEMY)
+    @image.draw_rot(@x, @y, Configuration::Z_EXPLOSION)
   end
 end
 
 # The Enemy class
 class Enemy
+  @all = []
+
+  class << self
+    attr_reader :all
+  end
+
   attr_reader :x, :y
 
   def initialize(x, y)
@@ -58,6 +112,7 @@ class Enemy
     @x = x
     @y = y
     @velocity = Configuration::ENEMY_VELOCITY
+    Enemy.all.push(self)
   end
 
   def update
@@ -67,10 +122,20 @@ class Enemy
   def draw
     @image.draw_rot(@x, @y, Configuration::Z_ENEMY)
   end
+
+  def destroy
+    Enemy.all.delete(self)
+  end
 end
 
 # The Bullet class
 class Bullet
+  @all = []
+
+  class << self
+    attr_reader :all
+  end
+
   attr_reader :x, :y
 
   def initialize(x, y)
@@ -78,6 +143,8 @@ class Bullet
     @x = x
     @y = y
     @velocity = Configuration::BULLET_VELOCITY
+
+    Bullet.all.push(self)
   end
 
   def update
@@ -86,6 +153,10 @@ class Bullet
 
   def draw
     @image.draw_rot(@x, @y, Configuration::Z_BULLET)
+  end
+
+  def destroy
+    Bullet.all.delete(self)
   end
 end
 
@@ -111,7 +182,8 @@ class Player
   end
 
   def shoot
-    Bullet.new(@x, @y - 50)
+    Bullet.new(@x, @y - 40)
+    LaserFlash.new(@x, @y - 40)
   end
 end
 
@@ -122,32 +194,42 @@ class SpaceShipWar < Gosu::Window
     self.caption = "SpaceShip War"
 
     @player = Player.new(Configuration::WINDOW_WIDTH / 2, Configuration::WINDOW_HEIGHT - 100)
-    @bullets = []
     @enemies = []
-    @explosions = []
+
+    @clip_shot = Gosu::Sample.new("#{__dir__}/sounds/sfx_laser1.ogg")
+    @clip_explosion = Gosu::Sample.new("#{__dir__}/sounds/explosionCrunch_000.ogg")
   end
 
   def update
-    @player.move_left if Gosu.button_down? Gosu::KB_LEFT
-    @player.move_right if Gosu.button_down? Gosu::KB_RIGHT
-    @bullets.each(&:update)
-    @enemies.each(&:update)
-    @explosions.each(&:update)
+    player_move
+    actors_updates
 
     check_collisions_bullets_enemies
     spawn_enemy if rand(100) < 4
   end
 
+  def player_move
+    @player.move_left if Gosu.button_down? Gosu::KB_LEFT
+    @player.move_right if Gosu.button_down? Gosu::KB_RIGHT
+  end
+
+  def actors_updates
+    Bullet.all.each(&:update)
+    Enemy.all.each(&:update)
+    Explosion.all.each(&:update)
+    LaserFlash.all.each(&:update)
+  end
+
   def spawn_enemy
-    enemy = Enemy.new(rand(Configuration::WINDOW_WIDTH), 0)
-    @enemies.push(enemy)
+    Enemy.new(rand(Configuration::WINDOW_WIDTH), 0)
   end
 
   def draw
     @player.draw
-    @bullets.each(&:draw)
-    @enemies.each(&:draw)
-    @explosions.each(&:draw)
+    Bullet.all.each(&:draw)
+    Enemy.all.each(&:draw)
+    Explosion.all.each(&:draw)
+    LaserFlash.all.each(&:draw)
   end
 
   def button_down(button_id)
@@ -155,26 +237,27 @@ class SpaceShipWar < Gosu::Window
     when Gosu::KB_ESCAPE
       close
     when Gosu::KB_SPACE
-      @bullets.push(@player.shoot)
+      @player.shoot
+      @clip_shot.play
     else
       super
     end
   end
 
   def check_collisions_bullets_enemies
-    @bullets.each do |bullet|
-      @enemies.each do |enemy|
+    Bullet.all.each do |bullet|
+      Enemy.all.each do |enemy|
         enemy_destroyed(enemy, bullet) if Gosu.distance(bullet.x, bullet.y, enemy.x, enemy.y) < 30
       end
     end
   end
 
   def enemy_destroyed(enemy, bullet)
-    @enemies.delete(enemy)
-    @bullets.delete(bullet)
+    enemy.destroy
+    bullet.destroy
 
-    explosion = Explosion.new(enemy.x, enemy.y, @explosions)
-    @explosions.push(explosion)
+    Explosion.new(enemy.x, enemy.y)
+    @clip_explosion.play
   end
 end
 
