@@ -14,6 +14,41 @@ module Configuration
   Z_UI = 4
 end
 
+class Explosion
+  def initialize(x, y, explosions)
+    @animation = [Gosu::Image.new("#{__dir__}/images/laserBlue08.png"), Gosu::Image.new("#{__dir__}/images/laserBlue09.png")]
+    @x = x
+    @y = y
+    @explosions = explosions
+    @velocity = Configuration::ENEMY_VELOCITY
+    @animation_frame = -1
+    next_frame
+  end
+
+  def update
+    next_frame if Gosu.milliseconds >= @animation_next_frame_at
+  end
+
+  def next_frame
+    @animation_frame += 1
+    @animation_next_frame_at = Gosu.milliseconds + 100
+
+    if @animation_frame >= @animation.length
+      die
+    else
+      @image = @animation[@animation_frame]
+    end
+  end
+
+  def die
+    @explosions.delete(self)
+  end
+
+  def draw
+    @image.draw_rot(@x, @y, Configuration::Z_ENEMY)
+  end
+end
+
 # The Enemy class
 class Enemy
   attr_reader :x, :y
@@ -25,7 +60,7 @@ class Enemy
     @velocity = Configuration::ENEMY_VELOCITY
   end
 
-  def move
+  def update
     @y += @velocity
   end
 
@@ -45,7 +80,7 @@ class Bullet
     @velocity = Configuration::BULLET_VELOCITY
   end
 
-  def move
+  def update
     @y -= @velocity
   end
 
@@ -89,13 +124,15 @@ class SpaceShipWar < Gosu::Window
     @player = Player.new(Configuration::WINDOW_WIDTH / 2, Configuration::WINDOW_HEIGHT - 100)
     @bullets = []
     @enemies = []
+    @explosions = []
   end
 
   def update
     @player.move_left if Gosu.button_down? Gosu::KB_LEFT
     @player.move_right if Gosu.button_down? Gosu::KB_RIGHT
-    @bullets.each(&:move)
-    @enemies.each(&:move)
+    @bullets.each(&:update)
+    @enemies.each(&:update)
+    @explosions.each(&:update)
 
     check_collisions_bullets_enemies
     spawn_enemy if rand(100) < 4
@@ -110,6 +147,7 @@ class SpaceShipWar < Gosu::Window
     @player.draw
     @bullets.each(&:draw)
     @enemies.each(&:draw)
+    @explosions.each(&:draw)
   end
 
   def button_down(button_id)
@@ -126,12 +164,17 @@ class SpaceShipWar < Gosu::Window
   def check_collisions_bullets_enemies
     @bullets.each do |bullet|
       @enemies.each do |enemy|
-        if Gosu.distance(bullet.x, bullet.y, enemy.x, enemy.y) < 30
-          @enemies.delete(enemy)
-          @bullets.delete(bullet)
-        end
+        enemy_destroyed(enemy, bullet) if Gosu.distance(bullet.x, bullet.y, enemy.x, enemy.y) < 30
       end
     end
+  end
+
+  def enemy_destroyed(enemy, bullet)
+    @enemies.delete(enemy)
+    @bullets.delete(bullet)
+
+    explosion = Explosion.new(enemy.x, enemy.y, @explosions)
+    @explosions.push(explosion)
   end
 end
 

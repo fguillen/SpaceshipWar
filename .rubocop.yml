@@ -9,3 +9,9 @@ Naming/MethodParameterName:
 
 Style/Next:
   Enabled: false
+
+Layout/LineLength:
+  Max: 180
+
+Style/GuardClause:
+  Enabled: false
