@@ -1,0 +1,10 @@
+{
+    "cSpell.ignoreWords": [
+        "gosu",
+        "starfighter",
+        "tileable"
+    ],
+    "[ruby]": {
+        "editor.tabSize": 2
+    }
+}

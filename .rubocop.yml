@@ -1,0 +1,8 @@
+Style/StringLiterals:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Naming/MethodParameterName:
+  MinNameLength: 1
