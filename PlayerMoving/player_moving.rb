@@ -21,6 +21,7 @@ class Star
     @animation = animation
     @color = create_random_color
     @x, @y = create_random_position
+    @animation_offset = rand(@animation.size)
   end
 
   def create_random_color
@@ -40,7 +41,7 @@ class Star
   end
 
   def draw
-    img = @animation[Gosu.milliseconds / 100 % @animation.size]
+    img = @animation[((Gosu.milliseconds / 100) + @animation_offset) % @animation.size]
     img.draw(
       @x - img.width / 2.0,
       @y - img.height / 2.0,
