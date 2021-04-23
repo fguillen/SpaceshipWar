@@ -20,7 +20,7 @@ class Player
   end
 
   def shoot
-    Bullet.new(@x, @y - 40)
+    Bullet.new(@x, @y - 40, Configuration::PLAYER_BULLET_IMAGE, Configuration::PLAYER_BULLET_VELOCITY, Bullet::KINDS[:player])
     LaserFlash.new(@x, @y - 40)
   end
 end

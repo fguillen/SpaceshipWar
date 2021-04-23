@@ -21,7 +21,7 @@ class LaserFlash
 
   def next_frame
     @animation_frame += 1
-    @animation_next_frame_at = Gosu.milliseconds + 80
+    @animation_next_frame_at = Gosu.milliseconds + 10
 
     if @animation_frame >= @animation.length
       die

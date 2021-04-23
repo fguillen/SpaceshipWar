@@ -6,19 +6,25 @@ class Bullet
     attr_reader :all
   end
 
-  attr_reader :x, :y
+  attr_reader :x, :y, :kind
 
-  def initialize(x, y)
-    @image = Gosu::Image.new("#{__dir__}/images/laserBlue02.png")
+  KINDS = {
+    player: 1,
+    enemy: 2
+  }
+
+  def initialize(x, y, image, velocity, kind)
+    @image = image
     @x = x
     @y = y
-    @velocity = Configuration::BULLET_VELOCITY
+    @velocity = velocity
+    @kind = kind
 
     Bullet.all.push(self)
   end
 
   def update
-    @y -= @velocity
+    @y += @velocity
   end
 
   def draw

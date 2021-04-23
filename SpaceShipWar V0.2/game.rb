@@ -63,7 +63,7 @@ class Game < Gosu::Window
   end
 
   def check_collisions_bullets_enemies
-    Bullet.all.each do |bullet|
+    Bullet.all.select { |e| e.kind == Bullet::KINDS[:player] }.each do |bullet|
       Enemy.all.each do |enemy|
         enemy_destroyed(enemy, bullet) if Gosu.distance(bullet.x, bullet.y, enemy.x, enemy.y) < 30
       end
