@@ -1,6 +1,4 @@
-require_relative "enemy"
-
-class EnemySpawner
+class EnemiesSpawner
   attr_reader :enemy_rows
 
   def initialize
@@ -38,13 +36,23 @@ class EnemySpawner
     return if enemies_text.nil?
 
     enemies_text.chars.each_with_index do |char, index|
+      position = (index * @enemy_size_width) + (@enemy_size_width / 2)
+
       if char == "x"
-        spawn_enemy_at((index * @enemy_size_width) + (@enemy_size_width / 2))
+        spawn_dummy_at(position)
+      end
+
+      if char == "o"
+        spawn_blaster_at(position)
       end
     end
   end
 
-  def spawn_enemy_at(position_x)
-    Enemy.new(position_x, -(@enemy_size_height / 2))
+  def spawn_dummy_at(position_x)
+    Enemy::Dummy.new(position_x, -(@enemy_size_height / 2))
+  end
+
+  def spawn_blaster_at(position_x)
+    Enemy::Blaster.new(position_x, -(@enemy_size_height / 2))
   end
 end

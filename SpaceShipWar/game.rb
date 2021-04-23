@@ -2,10 +2,12 @@ require "gosu"
 require_relative "configuration"
 require_relative "laser_flash"
 require_relative "explosion"
-require_relative "enemy"
 require_relative "bullet"
 require_relative "player"
-require_relative "enemy_spawner"
+require_relative "enemies_spawner"
+require_relative "enemies_basket"
+require_relative "enemies/blaster"
+require_relative "enemies/dummy"
 
 # The Main Class
 class Game < Gosu::Window
@@ -15,7 +17,7 @@ class Game < Gosu::Window
 
     @player = Player.new(Configuration::WINDOW_WIDTH / 2, Configuration::WINDOW_HEIGHT - 100)
     @enemies = []
-    @enemy_spawner = EnemySpawner.new
+    @enemy_spawner = EnemiesSpawner.new
 
     @clip_shot = Gosu::Sample.new("#{__dir__}/sounds/sfx_laser1.ogg")
     @clip_explosion = Gosu::Sample.new("#{__dir__}/sounds/explosionCrunch_000.ogg")
@@ -42,7 +44,7 @@ class Game < Gosu::Window
 
   def actors_updates
     Bullet.all.each(&:update)
-    Enemy.all.each(&:update)
+    EnemiesBasket.enemies.each(&:update)
     Explosion.all.each(&:update)
     LaserFlash.all.each(&:update)
   end
@@ -50,7 +52,7 @@ class Game < Gosu::Window
   def draw
     @player.draw
     Bullet.all.each(&:draw)
-    Enemy.all.each(&:draw)
+    EnemiesBasket.enemies.each(&:draw)
     Explosion.all.each(&:draw)
     LaserFlash.all.each(&:draw)
   end
@@ -69,7 +71,7 @@ class Game < Gosu::Window
 
   def check_collisions_bullets_enemies
     Bullet.all.select { |e| e.kind == Bullet::KINDS[:player] }.each do |bullet|
-      Enemy.all.each do |enemy|
+      EnemiesBasket.enemies.each do |enemy|
         enemy_destroyed(enemy, bullet) if Gosu.distance(bullet.x, bullet.y, enemy.x, enemy.y) < 30
       end
     end
@@ -82,7 +84,7 @@ class Game < Gosu::Window
   end
 
   def check_collisions_enemies_player
-    Enemy.all.each do |enemy|
+    EnemiesBasket.enemies.each do |enemy|
       player_destroyed_by_enemy(enemy) if Gosu.distance(enemy.x, enemy.y, @player.x, @player.y) < 80
     end
   end
