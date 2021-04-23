@@ -27,6 +27,11 @@ class Game < Gosu::Window
 
     check_collisions_bullets_enemies
 
+    if @player.is_alive?
+      check_collisions_bullets_player
+      check_collisions_enemies_player
+    end
+
     @enemy_spawner.update
   end
 
@@ -70,11 +75,39 @@ class Game < Gosu::Window
     end
   end
 
+  def check_collisions_bullets_player
+    Bullet.all.select { |e| e.kind == Bullet::KINDS[:enemy] }.each do |bullet|
+      player_destroyed(bullet) if Gosu.distance(bullet.x, bullet.y, @player.x, @player.y) < 30
+    end
+  end
+
+  def check_collisions_enemies_player
+    Enemy.all.each do |enemy|
+      player_destroyed_by_enemy(enemy) if Gosu.distance(enemy.x, enemy.y, @player.x, @player.y) < 80
+    end
+  end
+
   def enemy_destroyed(enemy, bullet)
     enemy.destroy
     bullet.destroy
 
     Explosion.new(enemy.x, enemy.y)
+    @clip_explosion.play
+  end
+
+  def player_destroyed(bullet)
+    bullet.destroy
+    @player.destroy
+    Explosion.new(@player.x, @player.y)
+    @clip_explosion.play
+  end
+
+  def player_destroyed_by_enemy(enemy)
+    enemy.destroy
+    @player.destroy
+    Explosion.new(enemy.x, enemy.y)
+    Explosion.new(@player.x, @player.y)
+    @clip_explosion.play
     @clip_explosion.play
   end
 end
