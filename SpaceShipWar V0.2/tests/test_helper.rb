@@ -1,0 +1,8 @@
+require "gosu"
+require_relative "../configuration"
+require_relative "../laser_flash"
+require_relative "../explosion"
+require_relative "../enemy"
+require_relative "../bullet"
+require_relative "../player"
+require_relative "../enemy_spawner"
