@@ -24,7 +24,6 @@ class Game < Gosu::Window
   end
 
   def update
-    player_move
     actors_updates
 
     check_collisions_bullets_enemies
@@ -37,12 +36,9 @@ class Game < Gosu::Window
     @enemy_spawner.update
   end
 
-  def player_move
-    @player.move_left if Gosu.button_down? Gosu::KB_LEFT
-    @player.move_right if Gosu.button_down? Gosu::KB_RIGHT
-  end
-
   def actors_updates
+    @player.update
+
     Bullet.all.each(&:update)
     EnemiesBasket.enemies.each(&:update)
     Explosion.all.each(&:update)
