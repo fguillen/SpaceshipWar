@@ -1,9 +1,11 @@
 require "gosu"
 require_relative "configuration"
+require_relative "moveable"
 require_relative "laser_flash"
 require_relative "explosion"
 require_relative "bullet"
 require_relative "player"
+require_relative "background"
 require_relative "enemies_spawner"
 require_relative "enemies_basket"
 require_relative "enemies/blaster"
@@ -15,6 +17,7 @@ class Game < Gosu::Window
     super Configuration::WINDOW_WIDTH, Configuration::WINDOW_HEIGHT
     self.caption = "SpaceShip War"
 
+    @background = Background.new("#{__dir__}/images/Background.png")
     @player = Player.new(Configuration::WINDOW_WIDTH / 2, Configuration::WINDOW_HEIGHT - 100)
     @enemies = []
     @enemy_spawner = EnemiesSpawner.new
@@ -24,6 +27,7 @@ class Game < Gosu::Window
   end
 
   def update
+    @background.update
     actors_updates
 
     check_collisions_bullets_enemies
@@ -46,6 +50,7 @@ class Game < Gosu::Window
   end
 
   def draw
+    @background.draw
     @player.draw
     Bullet.all.each(&:draw)
     EnemiesBasket.enemies.each(&:draw)
