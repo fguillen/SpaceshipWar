@@ -7,6 +7,7 @@ module Configuration
   Z_BACKGROUND = 0
   Z_ENEMY = 1
   Z_PLAYER = 2
+  Z_ENGINE = 1
   Z_BULLET = 3
   Z_EXPLOSION = 3
   Z_UI = 4

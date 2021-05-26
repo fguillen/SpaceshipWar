@@ -10,16 +10,20 @@ class Player
     @y = y
     @velocity = Configuration::PLAYER_VELOCITY
     @state = "alive"
+
+    @engine = Engine.new(self)
   end
 
   def draw
     if is_alive?
       @image.draw_rot(@x, @y, Configuration::Z_PLAYER)
+      @engine.draw
     end
   end
 
   def update
     move
+    @engine.update
   end
 
   def shoot

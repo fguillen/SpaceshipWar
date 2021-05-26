@@ -1,9 +1,12 @@
 require "gosu"
+require "easing"
+
 require_relative "configuration"
 require_relative "moveable"
 require_relative "laser_flash"
 require_relative "explosion"
 require_relative "bullet"
+require_relative "engine"
 require_relative "player"
 require_relative "background"
 require_relative "enemies_spawner"
